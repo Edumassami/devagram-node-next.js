@@ -13,7 +13,7 @@ const endpointLogin = async (
 
     const  {MINHA_CHAVE_JWT} = process.env;
     if(!MINHA_CHAVE_JWT){
-        res.status(500).json ({erro : 'ENV Jwt não informada'});
+       return res.status(500).json ({erro : 'ENV Jwt não informada'});
     }
 
     if(req.method === 'POST'){
