@@ -11,45 +11,48 @@ import { politicaCORS } from "@/middlewares/politicaCORS";
 const handler = nc()
 .use(upload.single('file'))
 .post(async (req: NextApiRequest, res: NextApiResponse<RespostaPadraoMsg>) => {
+    try{
+        const usuario = req.body as CadastroRequisicao;
 
-    const usuario = req.body as CadastroRequisicao;
-
-    if (!usuario.nome || usuario.nome.length < 2) {
-        return res.status(400).json({ erro: 'Nome inválido' });
-    }
-
-    if (!usuario.email || usuario.email.length < 5
-        || !usuario.email.includes('@')
-        || !usuario.email.includes('.')) {
-        return res.status(400).json({ erro: 'E-mail inválido' });
-    }
-
-    if (!usuario.senha || usuario.senha.length < 4) {
-        return res.status(400).json({ erro: 'Senha inválida' });
-    }
-
-        // validacao se ja existe usuario com o mesmo email
-
-        const usuariosComOMesmoEmail = await UsuarioModel.find({email : usuario.email});
-        if(usuariosComOMesmoEmail && usuariosComOMesmoEmail.length > 0){
-            return res.status(400).json({erro: 'Já existe uma conta com o e-mail informado'});
+        if (!usuario.nome || usuario.nome.length < 2) {
+            return res.status(400).json({ erro: 'Nome inválido' });
         }
 
-        //enviar a imagem do multer para o Cosmic
-        const image = await uploadImagemCosmic(req);
+        if (!usuario.email || usuario.email.length < 5
+            || !usuario.email.includes('@')
+            || !usuario.email.includes('.')) {
+            return res.status(400).json({ erro: 'E-mail inválido' });
+        }
 
-        // salvar no banco de dados
-        const usuarioASerSalvo = {
-        nome : usuario.nome,
-        email : usuario.email,
-        senha : md5(usuario.senha),
-        avatar : image?.media?.url
-    }
+        if (!usuario.senha || usuario.senha.length < 4) {
+            return res.status(400).json({ erro: 'Senha inválida' });
+        }
+
+            // validacao se ja existe usuario com o mesmo email
+
+            const usuariosComOMesmoEmail = await UsuarioModel.find({email : usuario.email});
+            if(usuariosComOMesmoEmail && usuariosComOMesmoEmail.length > 0){
+                return res.status(400).json({erro: 'Já existe uma conta com o e-mail informado'});
+            }
+
+            //enviar a imagem do multer para o Cosmic
+            const image = await uploadImagemCosmic(req);
+
+            // salvar no banco de dados
+            const usuarioASerSalvo = {
+            nome : usuario.nome,
+            email : usuario.email,
+            senha : md5(usuario.senha),
+            avatar : image?.media?.url
+        }
 
 
-    await UsuarioModel.create(usuarioASerSalvo);
-    return res.status(200).json({ msg: 'Cadastro concluído com sucesso' })
-    
+        await UsuarioModel.create(usuarioASerSalvo);
+        return res.status(200).json({ msg: 'Cadastro concluído com sucesso' })
+    } catch (e : any) {
+        console.log(e);
+        return res.status(400).json({erro : e.toString()});
+    } 
 
 });
 
